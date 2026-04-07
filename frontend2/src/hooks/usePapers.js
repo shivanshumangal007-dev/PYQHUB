@@ -3,7 +3,7 @@ import { getPapers, getSubjectsBySemester } from "../services/papersService";
 
 export const usePapers = () => {
 	const [semester, setSemester] = useState(2);
-	const [exam, setExam] = useState("MIDSEM");
+	const [exam, setExam] = useState("midsem");
 	const [subjects, setSubjects] = useState([]);
 	const [selectedSubjectIds, setSelectedSubjectIds] = useState([]);
 	const [papers, setPapers] = useState([]);
@@ -17,6 +17,7 @@ export const usePapers = () => {
 			if (ignore) {
 				return;
 			}
+			console.log("Fetched subjects for semester", semester, ":", data);
 			setSubjects(data);
 			setSelectedSubjectIds([]);
 		};
@@ -64,7 +65,7 @@ export const usePapers = () => {
 
 	const clearAllFilters = () => {
 		setSemester(1);
-		setExam("MIDSEM");
+		setExam("midsem");
 		setSelectedSubjectIds([]);
 	};
 

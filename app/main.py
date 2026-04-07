@@ -1,12 +1,29 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Form , UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 from sqlalchemy.orm import session
 from db import db_engine,SessionLocal
 from models import Base, Papers, Subject
 from schema import PaperCreate, SubjectBulkCreate, getPaperSchema
+import cloudinary.uploader
 
 Base.metadata.create_all(bind=db_engine)
+
+app = FastAPI()
+
+origins = [
+    "http://localhost:5173",   # React
+    "http://127.0.0.1:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_db():
@@ -24,19 +41,37 @@ def get_db():
 
 
 @app.post("/add-paper")
-def createPaper(paper : PaperCreate,db : session = Depends(get_db)):
-    new_paper = Papers(
-        title=paper.title,
-        subjectID=paper.subjectID,
-        year=paper.year,
-        examType = paper.examType,
-        semester=paper.semester,
-        pdf=str(paper.pdf)
+async def createPaper(
+    title: str = Form(...),
+    subject_id: int = Form(...),
+    year: int = Form(...),
+    examType: str = Form(...),
+    semester: int = Form(...),
+    file: UploadFile = File(...),
+    db: session = Depends(get_db)
+):
+
+    result = cloudinary.uploader.upload(
+        file.file,
+        resource_type="raw"
     )
+
+    file_url = result["secure_url"]
+
+
+    new_paper = Papers(
+        title=title,
+        subjectID=subject_id,
+        year=year,
+        examType=examType,
+        semester=semester,
+        pdf=file_url
+    )
+
     db.add(new_paper)
     db.commit()
     db.refresh(new_paper)
-    
+
     return new_paper
 
 @app.post("/subjects")
@@ -80,7 +115,7 @@ def get_subjectsBysemester(semester : int , db : session = Depends(get_db)):
         "subjects" : result
     })
 
-@app.post("/get-paper")
+@app.post("/get-papers")
 def getPaper(data :getPaperSchema , db : session = Depends(get_db)):
     papers = db.query(Papers).filter(Papers.subjectID.in_(data.subject)).all()
     result = []

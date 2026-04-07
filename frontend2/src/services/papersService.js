@@ -14,13 +14,14 @@ const normalizePaper = (paper) => {
 
 export const getSubjectsBySemester = async (semester) => {
 	try {
-		const response = await apiClient.post("/getsubjects/", { semester });
-		const payload = Array.isArray(response.data) ? response.data : [];
-
-		return payload.map((subject) => ({
+		const response = await apiClient.get(`/subject/${semester}`);
+		// const payload = Array.isArray(response.data.subjects) ? response.data.subjects : [];
+		
+		const result = response.data.subjects.map((subject) => ({
 			id: subject.id,
 			name: subject.name,
 		}));
+		return result;
 	} catch {
 		return [];
 	}
@@ -29,7 +30,7 @@ export const getSubjectsBySemester = async (semester) => {
 export const getPapers = async ({ semester, exam, subjectIds }) => {
 	try {
         console.log("Fetching papers with params:", { semester, exam, subjectIds });
-		const response = await apiClient.post("/", {
+		const response = await apiClient.post("/get-papers", {
 			semester,
 			exam,
 			subject: subjectIds,
@@ -37,10 +38,7 @@ export const getPapers = async ({ semester, exam, subjectIds }) => {
 		const payload = Array.isArray(response.data?.papers)
 			? response.data.papers
 			: [];
-
-		if (payload.length === 0) {
-			return mockPapers;
-		}
+		
 		return payload.map(normalizePaper);
 	} catch {
 		return mockPapers;

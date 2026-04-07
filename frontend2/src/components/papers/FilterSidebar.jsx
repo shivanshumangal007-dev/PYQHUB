@@ -40,15 +40,15 @@ const FilterSidebar = ({
 				<div className='exam-switch'>
 					<button
 						type='button'
-						className={`exam-btn ${exam === "MIDSEM" ? "active" : ""}`}
-						onClick={() => onExamChange("MIDSEM")}
+						className={`exam-btn ${exam === "midsem" ? "active" : ""}`}
+						onClick={() => onExamChange("midsem")}
 					>
 						Mid Sem
 					</button>
 					<button
 						type='button'
-						className={`exam-btn ${exam === "ENDSEM" ? "active" : ""}`}
-						onClick={() => onExamChange("ENDSEM")}
+						className={`exam-btn ${exam === "endsem" ? "active" : ""}`}
+						onClick={() => onExamChange("endsem")}
 					>
 						End Sem
 					</button>
