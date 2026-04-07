@@ -1,4 +1,41 @@
-const UploadPanel = ({logoutHandler}) => {
+import { useState } from "react";
+import api from "../../services/apiClient.js";
+
+const UploadPanel = ({ logoutHandler }) => {
+	const [title, setTitle] = useState("");
+	const [semester, setSemester] = useState("S5");
+	const [examType, setExamType] = useState("End Sem");
+	const [year, setYear] = useState("");
+	const [file, setFile] = useState(null);
+	const [subjectId, setSubjectId] = useState(""); // ⚠️ important
+
+	const handleSubmit = async () => {
+		try {
+			const formData = new FormData();
+
+			formData.append("title", title);
+			formData.append("subject_id", subjectId); // 🔥 backend expects this
+			formData.append("year", year);
+			formData.append("examType", examType.toLowerCase().replace(" ", ""));
+			formData.append("semester", semester.replace("S", ""));
+			formData.append("file", file);
+
+			const token = localStorage.getItem("ACCESS_TOKEN");
+
+			await api.post("/add-paper", formData, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "multipart/form-data",
+				},
+			});
+
+			alert("Upload successful 🚀");
+		} catch (err) {
+			console.log(err);
+			alert("Upload failed ❌");
+		}
+	};
+
 	return (
 		<section className='upload-page'>
 			<div className='upload-shell'>
@@ -22,15 +59,29 @@ const UploadPanel = ({logoutHandler}) => {
 						<h3>Paper Metadata</h3>
 						<div className='upload-form-grid'>
 							<label>
-								<span>Subject Name</span>
+								<span>Subject ID</span>
 								<input
-									type='text'
-									placeholder='e.g. Computer Networks'
+									type='number'
+									placeholder='Enter subject ID'
+									onChange={(e) => setSubjectId(e.target.value)}
 								/>
 							</label>
+
+							<label>
+								<span>Title</span>
+								<input
+									type='text'
+									placeholder='e.g. Computer Networks Midsem'
+									onChange={(e) => setTitle(e.target.value)}
+								/>
+							</label>
+
 							<label>
 								<span>Semester</span>
-								<select defaultValue='S5'>
+								<select
+									value={semester}
+									onChange={(e) => setSemester(e.target.value)}
+								>
 									<option>S1</option>
 									<option>S2</option>
 									<option>S3</option>
@@ -41,15 +92,20 @@ const UploadPanel = ({logoutHandler}) => {
 									<option>S8</option>
 								</select>
 							</label>
+
 							<label>
 								<span>Examination Type</span>
-								<select defaultValue='End Sem'>
+								<select
+									value={examType}
+									onChange={(e) => setExamType(e.target.value)}
+								>
 									<option>Mid Sem</option>
 									<option>End Sem</option>
 									<option>Regular</option>
 									<option>Supplementary</option>
 								</select>
 							</label>
+
 							<label>
 								<span>Year</span>
 								<input
@@ -57,6 +113,7 @@ const UploadPanel = ({logoutHandler}) => {
 									min='2000'
 									max='2100'
 									placeholder='2026'
+									onChange={(e) => setYear(e.target.value)}
 								/>
 							</label>
 						</div>
@@ -67,10 +124,18 @@ const UploadPanel = ({logoutHandler}) => {
 						<div className='drop-zone'>
 							<p>Drag and drop PDF here</p>
 							<span>or click to select file</span>
-							<input type='file' accept='application/pdf' />
+							<input
+								type='file'
+								accept='application/pdf'
+								onChange={(e) => setFile(e.target.files[0])}
+							/>
 						</div>
 						<div className='upload-actions'>
-							<button type='button' className='primary-action'>
+							<button
+								type='button'
+								className='primary-action'
+								onClick={handleSubmit}
+							>
 								Submit Upload
 							</button>
 							<button type='button' className='secondary-action'>

@@ -1,12 +1,12 @@
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import apiClient from "../services/apiClient";
+import apiClient from "../services/apiClient.js";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../utils/constants";
 
 const UploadLoginPage = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [email, setEmail] = useState("");
+	const [username, setusername] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,8 +29,8 @@ const UploadLoginPage = () => {
 		setIsSubmitting(true);
 
 		try {
-			const response = await apiClient.post("/api/token/", {
-				email,
+			const response = await apiClient.post("/login", {
+				username,
 				password,
 			});
 
@@ -38,7 +38,7 @@ const UploadLoginPage = () => {
 			localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
 			navigate(redirectPath, { replace: true });
 		} catch {
-			setError("Invalid email or password.");
+			setError("Invalid username or password.");
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -52,13 +52,13 @@ const UploadLoginPage = () => {
 
 				<form className='login-form' onSubmit={handleSubmit}>
 					<label>
-						<span>Email</span>
+						<span>username</span>
 						<input
-							type='email'
-							name='email'
-							autoComplete='email'
-							value={email}
-							onChange={(event) => setEmail(event.target.value)}
+							type='text'
+							name='username'
+							autoComplete='username'
+							value={username}
+							onChange={(event) => setusername(event.target.value)}
 							required
 						/>
 					</label>

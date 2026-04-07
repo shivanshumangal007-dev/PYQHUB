@@ -1,11 +1,16 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException, Form , UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from jose import JWTError, jwt
+
+from auth import create_access_token, create_refresh_token, get_current_user
 app = FastAPI()
 from sqlalchemy.orm import session
 from db import db_engine,SessionLocal
 from models import Base, Papers, Subject
-from schema import PaperCreate, SubjectBulkCreate, getPaperSchema
+from schema import LoginRequest, PaperCreate, SubjectBulkCreate, getPaperSchema
 import cloudinary.uploader
 
 Base.metadata.create_all(bind=db_engine)
@@ -48,6 +53,7 @@ async def createPaper(
     examType: str = Form(...),
     semester: int = Form(...),
     file: UploadFile = File(...),
+    user=Depends(get_current_user), 
     db: session = Depends(get_db)
 ):
 
@@ -134,3 +140,33 @@ def getPaper(data :getPaperSchema , db : session = Depends(get_db)):
     return JSONResponse(content= {
         "papers" : result
     }, status_code=201)
+
+
+@app.post("/login")
+def login(data : LoginRequest):
+    
+    # TEMP: hardcoded user
+    if data.username != os.getenv("USERNAME") or data.password != os.getenv("PASSWORD"):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    access_token = create_access_token({"sub": data.username})
+    refresh_token = create_refresh_token({"sub": data.username})
+
+    return {
+        "access": access_token,
+        "refresh": refresh_token
+    }
+
+
+@app.post("/refresh-token")
+def refresh_token(token: str = Form(...)):
+    try:
+        payload = jwt.decode(token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    new_access_token = create_access_token({"sub": username})
+    return {"access": new_access_token}

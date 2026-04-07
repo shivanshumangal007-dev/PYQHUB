@@ -23,3 +23,8 @@ class getPaperSchema(BaseModel):
     semester : Annotated[int , Field(description="enter the semzter you want PYQS of" , gt=0 , le= 8)]
     exam : Annotated[Literal["midsem", "endsem"], Field(description="the type of the exam")]
     subject: Annotated[List[int] , Field(description="enter the array of subjectIds")]
+
+
+class LoginRequest(BaseModel):
+    username: Annotated[str, Field(description="the username of the user", min_length=3, max_length=50)]
+    password: Annotated[str, Field(description="the password of the user", min_length=6)]
